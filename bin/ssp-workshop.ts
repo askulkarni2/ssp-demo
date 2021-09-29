@@ -28,6 +28,7 @@ class SspConstruct extends cdk.Construct {
       new ssp.ContainerInsightsAddOn(),
       new ssp.MetricsServerAddOn(),
       new ssp.XrayAddOn(),
+      new ssp.CalicoAddOn()
     ];
 
     const repoUrl = 'https://github.com/aws-samples/ssp-eks-workloads.git';
