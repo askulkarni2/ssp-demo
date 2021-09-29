@@ -68,8 +68,8 @@ class SspConstruct extends cdk.Construct {
         stackBuilder: devBlueprint.clone('us-west-1')
       })
       .stage({
-        id: 'us-west-2-ssp-prod',
-        stackBuilder: prodBlueprint.clone('us-west-2'),
+        id: 'us-east-1-ssp-prod',
+        stackBuilder: prodBlueprint.clone('us-east-1'),
         stageProps: {
           manualApprovals: true
         }
