@@ -7,25 +7,54 @@ class SspConstruct extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id);
     
-    const blueprint = ssp.EksBlueprint.builder()
-      .teams(
-        new ssp.PlatformTeam({
-          name: 'team-awesome'
-        }),
-        new ssp.ApplicationTeam({
-          name: 'team-burnham'
-        })
-      )
-      .addOns(
-        new ssp.AwsLoadBalancerControllerAddOn(),
-        new ssp.NginxAddOn(),
-        new ssp.ClusterAutoScalerAddOn(),
-        new ssp.ContainerInsightsAddOn(),
-        new ssp.MetricsServerAddOn(),
-        new ssp.XrayAddOn(),
-        new ssp.ArgoCDAddOn()
-      );
+    const teams: Array<ssp.Team> = [
+      new ssp.PlatformTeam({
+        name: 'team-awesome'
+      }),
+      new ssp.ApplicationTeam({
+        name: 'team-burnham'
+      })
+    ];
 
+    const addOns: Array<ssp.ClusterAddOn> = [
+      new ssp.AwsLoadBalancerControllerAddOn(),
+      new ssp.NginxAddOn(),
+      new ssp.ClusterAutoScalerAddOn(),
+      new ssp.ContainerInsightsAddOn(),
+      new ssp.MetricsServerAddOn(),
+      new ssp.XrayAddOn(),
+    ];
+
+    const repoUrl = 'https://github.com/aws-samples/ssp-eks-workloads.git';
+
+    const bootstrapRepo: ssp.ApplicationRepository = {
+      repoUrl,
+      credentialsSecretName: 'github-ssh-test',
+      credentialsType: 'SSH'
+    }
+
+    const devBootstrapArgo = new ssp.ArgoCDAddOn({
+      bootstrapRepo: {
+        ...bootstrapRepo,
+        path: 'envs/dev'
+      }
+    });
+
+    const prodBootstrapArgo = new ssp.ArgoCDAddOn({
+      bootstrapRepo: {
+        ...bootstrapRepo,
+        path: 'envs/prod',
+      },
+    });
+
+    const devBlueprint = ssp.EksBlueprint.builder()
+      .teams(...teams)
+      .addOns(...addOns.concat(devBootstrapArgo));
+
+    const prodBlueprint = ssp.EksBlueprint.builder()
+      .teams(...teams)
+      .addOns(...addOns.concat(prodBootstrapArgo));
+    
     ssp.CodePipelineStack.builder()
       .name('ssp-pipeline')
       .owner('askulkarni2')
@@ -36,11 +65,11 @@ class SspConstruct extends cdk.Construct {
       })
       .stage({
         id: 'us-west-1-ssp-dev',
-        stackBuilder: blueprint.clone('us-west-1')
+        stackBuilder: devBlueprint.clone('us-west-1')
       })
       .stage({
         id: 'us-west-2-ssp-prod',
-        stackBuilder: blueprint.clone('us-west-2'),
+        stackBuilder: prodBlueprint.clone('us-west-2'),
         stageProps: {
           manualApprovals: true
         }
