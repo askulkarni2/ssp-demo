@@ -11,13 +11,13 @@ class SspConstruct extends cdk.Construct {
         name: 'team-awesome'
       }),
       new ssp.ApplicationTeam({
-        name: 'team-burnham'
+        name: 'burnham'
       }),
       new ssp.ApplicationTeam({
-        name: 'team-riker'
+        name: 'riker'
       }),
       new ssp.ApplicationTeam({
-        name: 'team-carmen'
+        name: 'carmen'
       })
     ];
 
