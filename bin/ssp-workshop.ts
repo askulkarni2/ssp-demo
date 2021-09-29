@@ -20,9 +20,9 @@ class SspConstruct extends cdk.Construct {
 
     ssp.CodePipelineStack.builder()
       .name('ssp-pipeline')
-      .owner('aws-samples')
+      .owner('askulkarni2')
       .repository({
-        repoUrl: 'ssp-eks-patterns',
+        repoUrl: 'ssp-demo',
         credentialsSecretName: 'github-token',
         branch: 'main'
       })
