@@ -1,13 +1,35 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
 import * as ssp from '@aws-quickstart/ssp-amazon-eks';
 
+class TeamBurnham extends ssp.ApplicationTeam {
+  constructor(scope: cdk.Construct) {
+    super({
+      name: 'team-burnham',
+      userRole: new iam.Role(scope, 'team-burnham', {
+        assumedBy: new iam.AccountRootPrincipal(),
+        managedPolicies: [
+          {
+            managedPolicyArn:iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess').managedPolicyArn
+          }
+        ]
+      })
+    })
+  }
+}
 class SspConstruct extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id);
     
     const blueprint = ssp.EksBlueprint.builder()
+      .teams(
+        new TeamBurnham(scope),
+        new ssp.PlatformTeam({
+          name: 'team-awesome'
+        })
+      )
       .addOns(
         new ssp.AwsLoadBalancerControllerAddOn(),
         new ssp.NginxAddOn(),
