@@ -28,8 +28,6 @@ class SspConstruct extends cdk.Construct {
 
     const bootstrapRepo: ssp.ApplicationRepository = {
       repoUrl,
-      credentialsSecretName: 'github-ssh-test',
-      credentialsType: 'SSH'
     }
 
     const devBootstrapArgo = new ssp.ArgoCDAddOn({
