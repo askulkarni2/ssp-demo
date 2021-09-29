@@ -1,21 +1,51 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { SspWorkshopStack } from '../lib/ssp-workshop-stack';
+import * as ssp from '@aws-quickstart/ssp-amazon-eks';
+
+class SspConstruct extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id);
+    
+    const blueprint = ssp.EksBlueprint.builder()
+      .addOns(
+        new ssp.AwsLoadBalancerControllerAddOn(),
+        new ssp.NginxAddOn(),
+        new ssp.ClusterAutoScalerAddOn(),
+        new ssp.ContainerInsightsAddOn(),
+        new ssp.MetricsServerAddOn(),
+        new ssp.XrayAddOn(),
+        new ssp.ArgoCDAddOn()
+      );
+
+    ssp.CodePipelineStack.builder()
+      .name('ssp-pipeline')
+      .owner('aws-samples')
+      .repository({
+        repoUrl: 'ssp-eks-patterns',
+        credentialsSecretName: 'github-token',
+        branch: 'main'
+      })
+      .stage({
+        id: 'us-west-1-ssp-dev',
+        stackBuilder: blueprint.clone('us-west-1')
+      })
+      .stage({
+        id: 'us-west-2-ssp-prod',
+        stackBuilder: blueprint.clone('us-west-2'),
+        stageProps: {
+          manualApprovals: true
+        }
+      })
+      .build(scope, 'ssp-pipeline', props);
+  }
+}
 
 const app = new cdk.App();
-new SspWorkshopStack(app, 'SspWorkshopStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+new SspConstruct(app, 'ssp-stack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT, 
+    region: process.env.CDK_DEFAULT_REGION
+  }
 });
