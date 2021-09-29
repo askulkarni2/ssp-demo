@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import * as ssp from '@aws-quickstart/ssp-amazon-eks';
 
@@ -54,7 +53,7 @@ class SspConstruct extends cdk.Construct {
     const prodBlueprint = ssp.EksBlueprint.builder()
       .teams(...teams)
       .addOns(...addOns.concat(prodBootstrapArgo));
-    
+
     ssp.CodePipelineStack.builder()
       .name('ssp-pipeline')
       .owner('askulkarni2')
